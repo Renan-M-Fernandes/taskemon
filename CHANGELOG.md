@@ -17,3 +17,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Initial release.
 
 ## [Unreleased]
+
+- Added REST API backend.
+- Added SQLite task persistence.
+- Added hidden Pokémon reward system.
+- Added collection and statistics tables.

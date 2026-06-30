@@ -1,94 +1,163 @@
-<!--
-SPDX-FileCopyrightText: 2025 James Pond <james@cipher.host>
+# Taskemon
 
-SPDX-License-Identifier: CC0-1.0
--->
+> A self-hosted, Pokémon-inspired gamified task management platform.
 
-# `taskemon`
+Taskemon transforms everyday tasks into collectible adventures.
 
-![A photo of a board with several tasks printed and
-displayed.](.github/assets/taskemon-task-example.jpg "Task board")
+Every task you create secretly generates a Pokémon encounter. Complete the task to reveal the hidden Pokémon, add it to your collection, and build your Pokédex over time.
 
-`taskemon` is a very simple CLI tool that prints daily task tickets on a
-thermal printer, complete with a QR code that links to a random Pokémon
-as a "reward" for motivation. Basically, it's part of a process that
-helps you apply feedback loops to your tasks.
-
-I was inspired by [this article by Laurie
-Hérault](https://www.laurieherault.com/articles/a-thermal-receipt-printer-cured-my-procrastination)
-which explains how understanding the science of video games helped them
-"cure" their procrastination—you're encouraged to read the article for a
-better understanding. The Pokémon part came from [this comment by
-PaulHoule on Hacker
-News](https://news.ycombinator.com/item?id=44257382).
-
-> [!IMPORTANT]  
-> `taskemon` only supports the Epson TM-T20II thermal printer via USB
-> right now, and was only tested on macOS Sequoia. Patches or PRs to
-> support other models or networked printers are welcome!
-
-## Features
-
-- Prints styled task tickets with owner, category, and task description.
-- Generates a QR code linking to a random Pokémon Pokédex entry, or,
-  rarely, a fun surprise.
-- Supports the Epson TM-T20II thermal printer via USB out of the box.
-
-## Installation
-
-### From source
-
-First install the dependencies:
-
-- Go 1.24 or above.
-- make.
-- libusb
-
-Then, clone the repository, switch to the latest stable tag, compile,
-and install:
-
-```bash
-git clone 'git.sr.ht/~jamesponddotco/taskemon'
-cd 'taskemon'
-git checkout 'v0.1.0'
-make
-sudo make install
-```
-
-## Usage
-
-```bash
-$ taskemon --help
-Usage of taskemon:
-  -owner string
-        the person responsible for the task
-  -task string
-        the task description
-```
-
-## Contributing
-
-Anyone can help make **taskemon** better.  Check out [the contribution
-guidelines](CONTRIBUTING.md) for more information.
-
-## Resources
-
-The following resources are available:
-
-- **Support and general discussions**:
-  [Sourcehut](https://lists.sr.ht/~jamesponddotco/taskemon-discuss)/[GitHub](https://github.com/jamesponddotco/taskemon/discussions).
-- **Patches and PRs**:
-  [Sourcehut](https://lists.sr.ht/~jamesponddotco/taskemon-devel)/[GitHub](https://github.com/jamesponddotco/taskemon/pulls).
-- **Feature requests and bug reports**:
-  [Sourcehut](https://todo.sr.ht/~jamesponddotco/taskemon)/[GitHub](https://github.com/jamesponddotco/taskemon/issues).
+This repository contains the **official Taskemon backend**, written in Go.
 
 ---
 
-The work in this repository complies with [the REUSE
-specification](https://reuse.software/spec-3.3/). While [the default
-license is EUPL-1.2](LICENSE.md), individual files may be licensed
-differently.
+## Features
 
-Please see the individual files for details and [the LICENSES
-directory](LICENSES/) for a full list of licenses used in this
-repository.
+- REST API
+- SQLite database
+- Task CRUD
+- Hidden Pokémon rewards
+- Pokémon collection (Pokédex)
+- User statistics
+- Home Assistant integration
+- Designed for future SPA and CLI clients
+
+---
+
+## Roadmap
+
+### Backend
+
+- [x] Task CRUD
+- [x] Hidden reward generation
+- [x] Reward reveal on task completion
+- [x] Pokédex collection
+- [x] Statistics
+- [ ] Authentication
+- [ ] Configuration file
+- [ ] Docker support
+- [ ] Swagger / OpenAPI
+- [ ] Unit tests
+
+### Frontend
+
+- [ ] Web SPA
+- [ ] Home Assistant dashboard
+- [ ] Pokédex page
+- [ ] Statistics dashboard
+- [ ] Reward animations
+
+---
+
+## Architecture
+
+```
+                ┌──────────────┐
+                │ Home Assistant│
+                └──────┬───────┘
+                       │
+                ┌──────▼───────┐
+                │ Web SPA      │
+                └──────┬───────┘
+                       │
+                ┌──────▼───────┐
+                │ CLI          │
+                └──────┬───────┘
+                       │
+                REST API
+                       │
+             ┌─────────▼─────────┐
+             │   Taskemon Server │
+             └─────────┬─────────┘
+                       │
+                   SQLite
+```
+
+The backend is designed so multiple clients can interact with the same API.
+
+---
+
+## Current Database
+
+- Tasks
+- Hidden task rewards
+- Pokémon collection
+- User statistics
+
+---
+
+## API
+
+Current endpoints:
+
+| Method | Endpoint |
+|--------|----------|
+| GET | `/api/v1/health` |
+| GET | `/api/v1/tasks/{userID}` |
+| POST | `/api/v1/tasks/{userID}` |
+| GET | `/api/v1/tasks/{userID}/{taskID}` |
+| PATCH | `/api/v1/tasks/{userID}/{taskID}` |
+| DELETE | `/api/v1/tasks/{userID}/{taskID}` |
+| POST | `/api/v1/tasks/{userID}/{taskID}/complete` |
+| GET | `/api/v1/users/{userID}/collection` |
+| GET | `/api/v1/users/{userID}/stats` |
+
+Authentication is planned for a future release.
+
+---
+
+## Running
+
+Clone the repository
+
+```bash
+git clone https://github.com/Renan-M-Fernandes/taskemon.git
+```
+
+Install dependencies
+
+```bash
+go mod tidy
+```
+
+Run
+
+```bash
+go run ./cmd/taskemon
+```
+
+The server starts on port **8080** by default.
+
+---
+
+## Tech Stack
+
+- Go
+- SQLite
+- REST
+- Home Assistant
+- PokéAPI
+
+---
+
+## Project Status
+
+Taskemon is currently under active development.
+
+The backend is considered an early preview and the API may change before a stable v1 release.
+
+---
+
+## Inspiration
+
+Taskemon began as a small thermal-printer task manager created by
+[@jamesponddotco](https://github.com/jamesponddotco).
+
+This project expands that original idea into a self-hosted gamified task management platform with a REST API, future web frontend, Home Assistant integration and Pokémon-inspired progression.
+
+---
+
+## License
+
+This project is distributed under the **EUPL-1.2** license.
+
+See the LICENSE files for details.
