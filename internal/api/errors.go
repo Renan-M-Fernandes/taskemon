@@ -3,43 +3,34 @@ package api
 import (
 	"errors"
 	"net/http"
-)
 
-var ErrBadRequest = errors.New("bad request")
-var ErrTaskNotFound = errors.New("task not found")
-var ErrStatisticNotFound = errors.New("user statistic not found")
-var ErrTaskRewardNotFound = errors.New("task reward not found")
-var ErrTaskAlreadyCompleted = errors.New("task already completed")
-var ErrTaskCompletedDelete = errors.New("cannot delete completed task")
-var ErrEmptyTitle = errors.New("title cannot be empty")
-var ErrEmptyTag = errors.New("tag cannot be empty")
+	"github.com/Renan-M-Fernandes/taskemon/internal/task"
+)
 
 func ErrorCode(err error) int {
 	switch {
-	case errors.Is(err, ErrBadRequest):
+	case errors.Is(err, task.ErrBadRequest):
 		return http.StatusBadRequest
-
-	case errors.Is(err, ErrEmptyTitle):
+	case errors.Is(err, task.ErrEmptyTitle):
 		return http.StatusBadRequest
-
-	case errors.Is(err, ErrEmptyTag):
+	case errors.Is(err, task.ErrEmptyTag):
 		return http.StatusBadRequest
-
-	case errors.Is(err, ErrTaskNotFound):
+	case errors.Is(err, task.ErrPokemonSpeciesUnavailable):
+		return http.StatusServiceUnavailable
+	case errors.Is(err, task.ErrTaskNotFound):
 		return http.StatusNotFound
-
-	case errors.Is(err, ErrStatisticNotFound):
+	case errors.Is(err, task.ErrStatisticNotFound):
 		return http.StatusNotFound
-
-	case errors.Is(err, ErrTaskRewardNotFound):
+	case errors.Is(err, task.ErrTaskRewardNotFound):
 		return http.StatusNotFound
-
-	case errors.Is(err, ErrTaskAlreadyCompleted):
+	case errors.Is(err, task.ErrCollectionEntryNotFound):
+		return http.StatusNotFound
+	case errors.Is(err, task.ErrTaskAlreadyCompleted):
 		return http.StatusConflict
-
-	case errors.Is(err, ErrTaskCompletedDelete):
+	case errors.Is(err, task.ErrTaskCompletedDelete):
 		return http.StatusConflict
-
+	case errors.Is(err, task.ErrContextTimeout):
+		return http.StatusGatewayTimeout
 	default:
 		return http.StatusInternalServerError
 	}

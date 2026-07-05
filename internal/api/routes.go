@@ -2,48 +2,64 @@ package api
 
 import "net/http"
 
-func RegisterRoutes(handler *Handler) {
-	http.HandleFunc(
+func NewRouter(handler *Handler) *http.ServeMux {
+	mux := http.NewServeMux()
+	RegisterRoutes(mux, handler)
+	return mux
+}
+
+func RegisterRoutes(mux *http.ServeMux, handler *Handler) {
+	mux.HandleFunc(
 		"GET    /api/v1/health",
 		handler.GetHealth,
 	)
 
-	http.HandleFunc(
+	mux.HandleFunc(
 		"GET    /api/v1/tasks/{userID}/{ID}",
 		handler.GetTasks,
 	)
 
-	http.HandleFunc(
+	mux.HandleFunc(
 		"GET    /api/v1/tasks/{userID}",
 		handler.ListTasks,
 	)
 
-	http.HandleFunc(
+	mux.HandleFunc(
+		"GET    /api/v1/tasks/completed/{userID}",
+		handler.ListTasksCompleted,
+	)
+
+	mux.HandleFunc(
+		"GET    /api/v1/tasks/open/{userID}",
+		handler.ListTasksNotCompleted,
+	)
+
+	mux.HandleFunc(
 		"POST   /api/v1/tasks/{userID}",
 		handler.CreateTask,
 	)
 
-	http.HandleFunc(
+	mux.HandleFunc(
 		"DELETE /api/v1/tasks/{userID}/{ID}",
 		handler.DeleteTask,
 	)
 
-	http.HandleFunc(
+	mux.HandleFunc(
 		"PATCH  /api/v1/tasks/{userID}/{ID}",
 		handler.UpdateTask,
 	)
 
-	http.HandleFunc(
+	mux.HandleFunc(
 		"POST   /api/v1/tasks/{userID}/{ID}/complete",
 		handler.CompleteTask,
 	)
 
-	http.HandleFunc(
+	mux.HandleFunc(
 		"GET    /api/v1/users/{userID}/collection",
 		handler.ListCollection,
 	)
 
-	http.HandleFunc(
+	mux.HandleFunc(
 		"GET    /api/v1/users/{userID}/stats",
 		handler.GetStatistic,
 	)

@@ -1,0 +1,521 @@
+[
+    {
+        "userID": "renan",
+        "title": "Catch Pikachu",
+        "description": "Find and catch a Pikachu in the forest.",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Train Charmander",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Defeat Brock",
+        "description": "Win the Pewter City Gym battle.",
+        "dueAt": "2026-07-08T17:00:00Z",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Bulbasaur",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Evolve Squirtle",
+        "description": "Level Squirtle into Wartortle.",
+        "tag": "dev"
+    },
+    {
+        "userID": "joel",
+        "title": "Collect 10 Poké Balls",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Visit Viridian Forest",
+        "description": "Explore every area of the forest.",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Caterpie",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Evolve Caterpie",
+        "tag": "dev"
+    },
+    {
+        "userID": "ash",
+        "title": "Catch Pidgey",
+        "dueAt": "2026-07-10T15:00:00Z",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Train Pidgeotto",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Rattata",
+        "description": "Add Rattata to the Pokédex.",
+        "tag": "dev"
+    },
+    {
+        "userID": "ash",
+        "title": "Battle Team Rocket",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Rescue Cubone",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Eevee",
+        "description": "Find a rare Eevee.",
+        "tag": "dev"
+    },
+    {
+        "userID": "brock",
+        "title": "Evolve Eevee into Vaporeon",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Evolve Eevee into Jolteon",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Evolve Eevee into Flareon",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Snorlax",
+        "tag": "dev"
+    },
+    {
+        "userID": "brock",
+        "title": "Wake Snorlax",
+        "description": "Use the Poké Flute.",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Magikarp",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Evolve Magikarp",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Dratini",
+        "dueAt": "2026-07-12T18:00:00Z",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Evolve Dragonair",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Lapras",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Gengar",
+        "description": "Trade Haunter to evolve it.",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Abra",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Train Alakazam",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Machop",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Train Machamp",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Geodude",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Train Golem",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Onix",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Psyduck",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Growlithe",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Train Arcanine",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Vulpix",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Train Ninetales",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Oddish",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Train Vileplume",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Bellsprout",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Train Victreebel",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Tentacool",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Horsea",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Train Kingdra",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Seel",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Train Dewgong",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Jigglypuff",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Clefairy",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Zubat",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Train Crobat",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Sandshrew",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Diglett",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Meowth",
+        "description": "Catch Team Rocket's favorite Pokémon.",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Mankey",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Train Primeape",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Poliwag",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Train Poliwrath",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Slowpoke",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Train Slowbro",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Magnemite",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Train Magneton",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Farfetch'd",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Doduo",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Train Dodrio",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Grimer",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Train Muk",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Shellder",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Train Cloyster",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Drowzee",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Train Hypno",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Krabby",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Train Kingler",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Voltorb",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Train Electrode",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Exeggcute",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Train Exeggutor",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Cubone",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Train Marowak",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Hitmonlee",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Hitmonchan",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Lickitung",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Koffing",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Train Weezing",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Rhyhorn",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Train Rhydon",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Chansey",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Tangela",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Kangaskhan",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Goldeen",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Train Seaking",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Staryu",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Train Starmie",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Scyther",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Jynx",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Electabuzz",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Magmar",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Pinsir",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Tauros",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Catch Ditto",
+        "tag": "dev"
+    },
+    {
+        "userID": "renan",
+        "title": "Complete the Kanto Pokédex",
+        "description": "Register all 151 original Pokémon.",
+        "dueAt": "2026-08-01T12:00:00Z",
+        "tag": "dev"
+    }
+]

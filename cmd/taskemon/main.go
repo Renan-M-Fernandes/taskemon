@@ -1,10 +1,10 @@
 package main
 
 import (
-	// "flag"
-
+	"context"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/Renan-M-Fernandes/taskemon/internal/api"
 	"github.com/Renan-M-Fernandes/taskemon/internal/database"
@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	db, err := database.Connect()
+	db, err := database.Connect("taskemon.db")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -24,18 +24,24 @@ func main() {
 		log.Fatal(err)
 	}
 
-	task.LoadPokemonSpeciesCount()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	err = task.LoadPokemonSpeciesCount(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	repo := task.NewRepository(db)
 	service := task.NewService(repo)
 	handler := api.NewHandler(service)
 
-	api.RegisterRoutes(handler)
+	mux := api.NewRouter(handler)
 
 	log.Fatal(
 		http.ListenAndServe(
 			":8080",
-			api.EnableCORS(http.DefaultServeMux),
+			api.EnableCORS(mux),
 		),
 	)
 }

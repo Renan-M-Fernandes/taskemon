@@ -2,24 +2,22 @@ package database
 
 import (
 	"database/sql"
-	"os"
+	_ "embed"
 
 	_ "modernc.org/sqlite"
 )
 
-func Connect() (*sql.DB, error) {
+func Connect(path string) (*sql.DB, error) {
 	return sql.Open(
 		"sqlite",
-		"./database/taskemon.db",
+		"./database/"+path,
 	)
 }
 
-func Migrate(db *sql.DB) error {
-	migration, err := os.ReadFile("./internal/database/migrations.sql")
-	if err != nil {
-		return err
-	}
+//go:embed migrations.sql
+var migrationsSQL string
 
-	_, err = db.Exec(string(migration))
+func Migrate(db *sql.DB) error {
+	_, err := db.Exec(migrationsSQL)
 	return err
 }

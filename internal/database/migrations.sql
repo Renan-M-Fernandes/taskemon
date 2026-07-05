@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS task_rewards (
     task_id             INTEGER NOT NULL UNIQUE,
     pokemon_id          INTEGER NOT NULL,
     pokemon_name        TEXT NOT NULL,
-    pokemon_sprite      TEXT, 
+    sprite              TEXT, 
     rarity              INTEGER NOT NULL DEFAULT 1, --1 Common, 2 Uncommon, 3 Rare, 4 Legendary, 5 Mythical
     shiny               INTEGER NOT NULL DEFAULT 0,
     revealed            INTEGER NOT NULL DEFAULT 0,
@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS collection_entries (
     shiny               INTEGER NOT NULL DEFAULT 0,    
     first_caught_at     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_caught_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(user_id, pokemon_id)
+    UNIQUE(user_id, pokemon_id, shiny)
 
 );
 
@@ -86,13 +86,13 @@ CREATE TABLE IF NOT EXISTS collection_entries (
 
 CREATE TABLE IF NOT EXISTS user_statistics (
 
-    user_id                TEXT PRIMARY KEY,
-    tasks_completed        INTEGER NOT NULL DEFAULT 0,
-	tasks_opened           INTEGER NOT NULL DEFAULT 0, 
-	tasks_deleted          INTEGER NOT NULL DEFAULT 0,    
-    pokemon_caught         INTEGER NOT NULL DEFAULT 0,
-	shiny_caught           INTEGER NOT NULL DEFAULT 0,      
-    unique_pokemon         INTEGER NOT NULL DEFAULT 0,
-    current_streak         INTEGER NOT NULL DEFAULT 0,
-    longest_streak         INTEGER NOT NULL DEFAULT 0
+        user_id                TEXT PRIMARY KEY,
+        tasks_completed        INTEGER NOT NULL DEFAULT 0,
+        tasks_opened           INTEGER NOT NULL DEFAULT 0, 
+        tasks_deleted          INTEGER NOT NULL DEFAULT 0,    
+        pokemon_caught         INTEGER NOT NULL DEFAULT 0,
+        shiny_caught           INTEGER NOT NULL DEFAULT 0,      
+        unique_pokemon         INTEGER NOT NULL DEFAULT 0,
+        current_streak         INTEGER NOT NULL DEFAULT 0,
+        longest_streak         INTEGER NOT NULL DEFAULT 0
 );

@@ -1,6 +1,7 @@
 package task
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"math/rand/v2"
@@ -25,36 +26,32 @@ func NewService(repo *Repository) *Service {
 	}
 }
 
+var httpClient = &http.Client{
+	Timeout: 20 * time.Second,
+}
+
 //Handles the tasks
 
-func (s Service) CreateTask(t Task) error {
+func (s Service) CreateTask(t Task) (Task, error) {
 	if t.Title == "" {
-		return ErrEmptyTitle
+		return Task{}, ErrEmptyTitle
 	}
 	if t.Tag == "" {
 		t.Tag = "Misc"
 	}
-
-	t, err := s.repo.CreateTask(Task{
-		UserID:      t.UserID,
-		Title:       t.Title,
-		Description: t.Description,
-		Completed:   t.Completed,
-		DueAt:       t.DueAt,
-		Tag:         t.Tag,
-	})
+	t, err := s.repo.CreateTask(t)
 	if err != nil {
-		return err
+		return Task{}, err
 	}
 
 	err = s.CreateTaskReward(t)
 	if err != nil {
-		return err
+		return Task{}, err
 	}
 
 	us, err := s.repo.ExistStatistic(t.UserID)
 	if err != nil {
-		return err
+		return Task{}, err
 	}
 
 	if us.UserID == "" {
@@ -62,20 +59,24 @@ func (s Service) CreateTask(t Task) error {
 		us.TasksOpened++
 		err := s.repo.CreateUserStatistic(us)
 		if err != nil {
-			return err
+			return Task{}, err
 		}
 	} else {
 		err = s.updateUserStatisticOnCreate(t.UserID)
 		if err != nil {
-			return err
+			return Task{}, err
 		}
 	}
+	t, err = s.repo.GetTask(t.ID, t.UserID)
+	if err != nil {
+		return Task{}, err
+	}
 
-	return nil
+	return t, nil
 }
 
-func (s Service) DeleteTask(t Task) error {
-	t, err := s.repo.ExistTask(t)
+func (s Service) DeleteTask(ID int, userName string) error {
+	t, err := s.repo.ExistTask(ID, userName)
 
 	if err != nil {
 		return err
@@ -85,7 +86,7 @@ func (s Service) DeleteTask(t Task) error {
 		return ErrTaskCompletedDelete
 	}
 
-	err = s.repo.DeleteTaskReward(t.Reward.ID)
+	err = s.repo.DeleteTaskReward(t.ID)
 
 	if err != nil {
 		return err
@@ -105,39 +106,37 @@ func (s Service) DeleteTask(t Task) error {
 	return nil
 }
 
-func (s Service) CompleteTask(t Task) error {
-	t, err := s.repo.GetTask(t)
+func (s Service) CompleteTask(ID int, userID string) (Task, error) {
+	t, err := s.repo.GetTask(ID, userID)
 	if err != nil {
-		return err
+		return Task{}, err
 	}
 
 	if t.Completed {
-		return ErrTaskAlreadyCompleted
+		return Task{}, ErrTaskAlreadyCompleted
 	}
 
-	err = s.repo.CompleteTask(Task{
-		ID: t.ID,
-	})
+	err = s.repo.CompleteTask(ID, userID)
 
 	if err != nil {
-		return err
+		return Task{}, err
 	}
 
-	err = s.RevealPokemon(t)
+	_, err = s.revealPokemon(t)
 	if err != nil {
-		return err
+		return Task{}, err
 	}
 
-	return nil
+	t, err = s.repo.GetTask(ID, userID)
+	if err != nil {
+		return Task{}, err
+	}
+
+	return t, nil
 }
 
 func (s Service) UpdateTask(dueAtSent bool, update TaskUpdate) error {
-	t := Task{
-		ID:     update.ID,
-		UserID: update.UserID,
-	}
-
-	t, err := s.GetTask(t)
+	t, err := s.GetTask(update.ID, update.UserID)
 	if err != nil {
 		return err
 	}
@@ -179,18 +178,26 @@ func (s Service) UpdateTask(dueAtSent bool, update TaskUpdate) error {
 	return nil
 }
 
-func (s Service) GetTask(t Task) (Task, error) {
-	return s.repo.GetTask(t)
+func (s Service) GetTask(ID int, userID string) (Task, error) {
+	return s.repo.GetTask(ID, userID)
 }
 
-func (s Service) ListTasksByUser(t Task) ([]Task, error) {
-	return s.repo.ListTasksByUser(t)
+func (s Service) ListTasksByUser(userID string) ([]Task, error) {
+	return s.repo.ListTasksByUser(userID)
+}
+
+func (s Service) ListTasksByUserNotCompleted(userID string) ([]Task, error) {
+	return s.repo.ListTasksByUserNotCompleted(userID)
+}
+
+func (s Service) ListTasksByUserCompleted(userID string) ([]Task, error) {
+	return s.repo.ListTasksByUserCompleted(userID)
 }
 
 //Handles the rewards
 
 func (s Service) CreateTaskReward(t Task) error {
-	tr, err := getPokemonFromAPI()
+	tr, err := getPokemonFromAPIs()
 	if err != nil {
 		return err
 	}
@@ -208,42 +215,36 @@ func (s Service) CreateTaskReward(t Task) error {
 	return nil
 }
 
-func (s Service) RevealPokemon(t Task) error {
-	tr := t.Reward
-
-	err := s.repo.RevealPokemon(TaskReward{
-		ID: tr.ID,
-	})
+func (s Service) revealPokemon(t Task) (TaskReward, error) {
+	err := s.repo.RevealPokemon(t.ID)
 
 	if err != nil {
-		return err
+		return TaskReward{}, err
 	}
 
-	err = s.handlesCollectionEntry(t.UserID, tr)
+	err = s.handlesCollectionEntry(t.UserID, t.Reward)
 
 	if err != nil {
-		return err
+		return TaskReward{}, err
 	}
 
 	err = s.updateUserStatisticOnReveal(t.UserID)
 
 	if err != nil {
-		return err
+		return TaskReward{}, err
 	}
 
-	return nil
+	return TaskReward{}, nil
 }
 
-func (s Service) GetTaskReward(t Task) (TaskReward, error) {
-	return s.repo.GetTaskReward(Task{
-		ID: t.ID,
-	})
+func (s Service) GetTaskReward(ID int, userID string) (TaskReward, error) {
+	return s.repo.GetTaskReward(ID)
 }
 
 //Handles Collection Entry/Pokedex
 
 func (s Service) handlesCollectionEntry(userID string, tr TaskReward) error {
-	ID, err := s.existCollectionEntry(userID, tr.PokemonID)
+	ID, err := s.existCollectionEntry(userID, tr.PokemonID, tr.Shiny)
 
 	if err != nil {
 		return err
@@ -292,8 +293,8 @@ func (s Service) ListCollection(userID string) ([]CollectionEntry, error) {
 	return s.repo.ListCollection(userID)
 }
 
-func (s Service) existCollectionEntry(userID string, pokemonID int) (int, error) {
-	return s.repo.ExistCollectionEntry(userID, pokemonID)
+func (s Service) existCollectionEntry(userID string, pokemonID int, shiny bool) (int, error) {
+	return s.repo.ExistCollectionEntry(userID, pokemonID, shiny)
 }
 
 // Handles Statistics
@@ -320,7 +321,7 @@ func (s Service) updateUserStatisticOnReveal(userID string) error {
 	expected := today
 
 	if len(dates) == 0 {
-		return fmt.Errorf("update user statistic: date len: %w", err)
+		return fmt.Errorf("update user statistic: no completion dates for user %q", userID)
 	}
 
 	// If today isn't completed, the streak starts by expecting yesterday.
@@ -363,41 +364,31 @@ func (s Service) updateUserStatisticOnDelete(userID string) error {
 func (s Service) GetHealth() (Health, error) {
 	var h Health
 	h.Status = "OK"
-	h.Version = "1.0.0"
+	h.Version = "0.2.0"
 	h.Database = "connected"
 	return h, nil
 }
 
-func getPokemonFromAPI() (TaskReward, error) {
-	id := rand.IntN(maxPokemonSpecies-1) + 1
-	url := "https://pokeapi.co/api/v2/pokemon/" + strconv.Itoa(id)
-	urlSpecies := "https://pokeapi.co/api/v2/pokemon-species/" + strconv.Itoa(id)
-	//Get data from pokemon api
-	resp, err := http.Get(url)
-	if err != nil {
-		return TaskReward{}, fmt.Errorf("pokemon api: get: %w", err)
+func getPokemonFromAPIs() (TaskReward, error) {
+	if maxPokemonSpecies < 1 {
+		return TaskReward{}, ErrPokemonSpeciesUnavailable
 	}
-	var pokemon Pokemon
+	ID := rand.IntN(maxPokemonSpecies) + 1
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
-	err = json.NewDecoder(resp.Body).Decode(&pokemon)
-	if err != nil {
-		return TaskReward{}, fmt.Errorf("pokemon api: decode: %w", err)
-	}
-
-	//Get data from spicies api
-	resp, err = http.Get(urlSpecies)
-	if err != nil {
-		return TaskReward{}, fmt.Errorf("pokemon api species: get: %w", err)
-	}
-	var rarity Rarity
-
-	err = json.NewDecoder(resp.Body).Decode(&rarity)
-	if err != nil {
-		return TaskReward{}, fmt.Errorf("pokemon api species: decode: %w", err)
-	}
 	var tr TaskReward
+	pokemon, err := getPokemonFromPokemonAPI(ctx, ID)
+	if err != nil {
+		return TaskReward{}, err
+	}
 
-	tr.PokemonID = id
+	rarity, err := getPokemonFromSpicieAPI(ctx, ID)
+	if err != nil {
+		return TaskReward{}, err
+	}
+
+	tr.PokemonID = ID
 	tr.PokemonName = pokemon.Name
 	tr.Rarity = checkRarity(rarity)
 	tr.Shiny = IsShiny()
@@ -406,7 +397,60 @@ func getPokemonFromAPI() (TaskReward, error) {
 	} else {
 		tr.Sprite = pokemon.Sprites.FrontDefault
 	}
+
 	return tr, nil
+}
+
+func getPokemonFromPokemonAPI(ctx context.Context, ID int) (Pokemon, error) {
+	url := "https://pokeapi.co/api/v2/pokemon/" + strconv.Itoa(ID)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return Pokemon{}, fmt.Errorf("pokemon api pokemon: create request: %w", err)
+	}
+
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return Pokemon{}, fmt.Errorf("pokemon api pokemon: do request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return Pokemon{}, fmt.Errorf("pokemon api pokemon: bad status: %s", resp.Status)
+	}
+
+	var pokemon Pokemon
+	if err := json.NewDecoder(resp.Body).Decode(&pokemon); err != nil {
+		return Pokemon{}, fmt.Errorf("pokemon api pokemon: decode: %w", err)
+	}
+
+	return pokemon, nil
+}
+
+func getPokemonFromSpicieAPI(ctx context.Context, ID int) (Rarity, error) {
+	url := "https://pokeapi.co/api/v2/pokemon-species/" + strconv.Itoa(ID)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return Rarity{}, fmt.Errorf("pokemon api species: create request: %w", err)
+	}
+
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return Rarity{}, fmt.Errorf("pokemon api species: do request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return Rarity{}, fmt.Errorf("pokemon api species: bad status: %s", resp.Status)
+	}
+
+	var rarity Rarity
+	if err := json.NewDecoder(resp.Body).Decode(&rarity); err != nil {
+		return Rarity{}, fmt.Errorf("pokemon api species: decode: %w", err)
+	}
+
+	return rarity, nil
 }
 
 func IsShiny() bool {
@@ -423,17 +467,34 @@ func checkRarity(rarity Rarity) int {
 	}
 }
 
-func LoadPokemonSpeciesCount() error {
-	resp, err := http.Get("https://pokeapi.co/api/v2/pokemon-species?limit=1")
+func LoadPokemonSpeciesCount(ctx context.Context) error {
+	url := "https://pokeapi.co/api/v2/pokemon-species?limit=1"
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("load species count: get: %w", err)
+	}
+
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("load species count: do request: %w", err)
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("load species count: bad status: %s", resp.Status)
 	}
 
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("load species count: decode: %w", err)
 	}
 
 	maxPokemonSpecies = result.Count
-	return err
+
+	if maxPokemonSpecies < 1 {
+		return ErrPokemonSpeciesUnavailable
+	}
+
+	return nil
 }

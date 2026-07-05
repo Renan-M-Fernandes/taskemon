@@ -59,30 +59,32 @@ func (r Repository) DeleteTask(ID int) error {
 	if err != nil {
 		return fmt.Errorf("delete task: exec: %w", err)
 	}
-	rowsAffected, err := result.RowsAffected()
+	rowsAffected, _ := result.RowsAffected()
 	if rowsAffected == 0 {
-		return fmt.Errorf("delete task: rows affected: %w", err)
+		return ErrTaskNotFound
 	}
 	return nil
 }
 
-func (r Repository) CompleteTask(t Task) error {
+func (r Repository) CompleteTask(id int, userID string) error {
 	result, err := r.db.Exec(
-		"UPDATE tasks SET completed = true, completed_at = ? WHERE id = ?",
+		"UPDATE tasks SET completed = true, completed_at = ? WHERE id = ? AND user_id = ?",
 		time.Now().Format("2006-01-02 15:04:05"),
-		t.ID,
+		id,
+		userID,
 	)
 	if err != nil {
 		return fmt.Errorf("complete task: exec: %w", err)
 	}
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("complete task: row affected: %w", err)
+		return fmt.Errorf("complete task: rows affected: %w", err)
 	}
 
 	if rowsAffected == 0 {
-		return fmt.Errorf("complete task: not found: %w", err)
+		return ErrTaskNotFound
 	}
+
 	return nil
 }
 
@@ -118,11 +120,12 @@ func (r Repository) UpdateTask(t Task) error {
 	return nil
 }
 
-func (r Repository) GetTask(t Task) (Task, error) {
+func (r Repository) GetTask(ID int, userID string) (Task, error) {
+	var t Task
 	err := r.db.QueryRow(
 		"SELECT id,user_id,title,description,due_at,completed,tag,created_at,completed_at FROM tasks WHERE ID = ? and user_id = ?",
-		t.ID,
-		t.UserID,
+		ID,
+		userID,
 	).Scan(
 		&t.ID,
 		&t.UserID,
@@ -142,7 +145,7 @@ func (r Repository) GetTask(t Task) (Task, error) {
 	}
 
 	err = r.db.QueryRow(
-		"SELECT id,task_id,pokemon_id,pokemon_name,pokemon_sprite,rarity,shiny,revealed,generated_at,revealed_at FROM task_rewards WHERE task_id = ?",
+		"SELECT id,task_id,pokemon_id,pokemon_name,sprite,rarity,shiny,revealed,generated_at,revealed_at FROM task_rewards WHERE task_id = ?",
 		t.ID,
 	).Scan(
 		&t.Reward.ID,
@@ -166,11 +169,12 @@ func (r Repository) GetTask(t Task) (Task, error) {
 	return t, err
 }
 
-func (r Repository) ExistTask(t Task) (Task, error) {
+func (r Repository) ExistTask(ID int, userID string) (Task, error) {
+	var t Task
 	err := r.db.QueryRow(
 		"SELECT id, user_id, completed FROM tasks WHERE ID = ? and user_id = ?",
-		t.ID,
-		t.UserID,
+		ID,
+		userID,
 	).Scan(
 		&t.ID,
 		&t.UserID,
@@ -201,7 +205,7 @@ func (r Repository) ExistTask(t Task) (Task, error) {
 	return t, nil
 }
 
-func (r Repository) ListTasksByUser(t Task) ([]Task, error) {
+func (r Repository) ListTasksByUser(userID string) ([]Task, error) {
 	rows, err := r.db.Query(`
 	SELECT
 		t.id,
@@ -218,7 +222,7 @@ func (r Repository) ListTasksByUser(t Task) ([]Task, error) {
 		tr.task_id,
 		tr.pokemon_id,
 		tr.pokemon_name,
-		tr.pokemon_sprite,
+		tr.sprite,
 		tr.rarity,
 		tr.shiny,
 		tr.revealed,
@@ -229,13 +233,14 @@ func (r Repository) ListTasksByUser(t Task) ([]Task, error) {
 	LEFT JOIN task_rewards tr
 		ON tr.task_id = t.id
 	WHERE t.user_id = ?
-	`, t.UserID)
+	`, userID)
 	if err != nil {
 		return nil, fmt.Errorf("list tasks: query: %w", err)
 	}
 	defer rows.Close()
 
 	var tasks []Task
+	var t Task
 
 	for rows.Next() {
 		err := rows.Scan(
@@ -274,40 +279,151 @@ func (r Repository) ListTasksByUser(t Task) ([]Task, error) {
 	return tasks, nil
 }
 
-func (r Repository) ListCompletedTasks() ([]Task, error) {
-	rows, err := r.db.Query(
-		"SELECT id, user_id, title, description, due_at, completed, tag, created_at, completed_at FROM tasks",
-	)
+func (r Repository) ListTasksByUserNotCompleted(userID string) ([]Task, error) {
+	rows, err := r.db.Query(`
+	SELECT
+		t.id,
+		t.user_id,
+		t.title,
+		t.description,
+		t.completed,
+		t.due_at,
+		t.tag,
+		t.created_at,
+		t.completed_at,
+
+		tr.id,
+		tr.task_id,
+		tr.pokemon_id,
+		tr.pokemon_name,
+		tr.sprite,
+		tr.rarity,
+		tr.shiny,
+		tr.revealed,
+		tr.generated_at,
+		tr.revealed_at
+
+	FROM tasks t
+	LEFT JOIN task_rewards tr
+		ON tr.task_id = t.id
+	WHERE t.user_id = ?
+	  AND t.completed = 0
+	`, userID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("list tasks: query: %w", err)
 	}
 	defer rows.Close()
 
 	var tasks []Task
+	var t Task
 
 	for rows.Next() {
-		var t Task
-
 		err := rows.Scan(
 			&t.ID,
 			&t.UserID,
 			&t.Title,
 			&t.Description,
-			&t.DueAt,
 			&t.Completed,
+			&t.DueAt,
 			&t.Tag,
 			&t.CreatedAt,
 			&t.CompletedAt,
+
+			&t.Reward.ID,
+			&t.Reward.TaskID,
+			&t.Reward.PokemonID,
+			&t.Reward.PokemonName,
+			&t.Reward.Sprite,
+			&t.Reward.Rarity,
+			&t.Reward.Shiny,
+			&t.Reward.Revealed,
+			&t.Reward.GeneratedAt,
+			&t.Reward.RevealedAt,
 		)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("list tasks: scan: %w", err)
 		}
 
 		tasks = append(tasks, t)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("list tasks: rows iteration: %w", err)
+	}
+
+	return tasks, nil
+}
+
+func (r Repository) ListTasksByUserCompleted(userID string) ([]Task, error) {
+	rows, err := r.db.Query(`
+	SELECT
+		t.id,
+		t.user_id,
+		t.title,
+		t.description,
+		t.completed,
+		t.due_at,
+		t.tag,
+		t.created_at,
+		t.completed_at,
+
+		tr.id,
+		tr.task_id,
+		tr.pokemon_id,
+		tr.pokemon_name,
+		tr.sprite,
+		tr.rarity,
+		tr.shiny,
+		tr.revealed,
+		tr.generated_at,
+		tr.revealed_at
+
+	FROM tasks t
+	LEFT JOIN task_rewards tr
+		ON tr.task_id = t.id
+	WHERE t.user_id = ? AND
+	      t.completed = 1	
+	`, userID)
+	if err != nil {
+		return nil, fmt.Errorf("list completed tasks: query: %w", err)
+	}
+	defer rows.Close()
+
+	var tasks []Task
+	var t Task
+
+	for rows.Next() {
+		err := rows.Scan(
+			&t.ID,
+			&t.UserID,
+			&t.Title,
+			&t.Description,
+			&t.Completed,
+			&t.DueAt,
+			&t.Tag,
+			&t.CreatedAt,
+			&t.CompletedAt,
+
+			&t.Reward.ID,
+			&t.Reward.TaskID,
+			&t.Reward.PokemonID,
+			&t.Reward.PokemonName,
+			&t.Reward.Sprite,
+			&t.Reward.Rarity,
+			&t.Reward.Shiny,
+			&t.Reward.Revealed,
+			&t.Reward.GeneratedAt,
+			&t.Reward.RevealedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("list completed tasks: scan: %w", err)
+		}
+
+		tasks = append(tasks, t)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("list completed tasks: rows iteration: %w", err)
 	}
 
 	return tasks, nil
@@ -317,7 +433,7 @@ func (r Repository) ListCompletedTasks() ([]Task, error) {
 
 func (r Repository) CreateTaskReward(tr TaskReward) error {
 	_, err := r.db.Exec(
-		"INSERT INTO task_rewards (task_id,pokemon_id,pokemon_name,pokemon_sprite,rarity,shiny,generated_at) VALUES (?,?,?,?,?,?,?)",
+		"INSERT INTO task_rewards (task_id,pokemon_id,pokemon_name,sprite,rarity,shiny,generated_at) VALUES (?,?,?,?,?,?,?)",
 		tr.TaskID,
 		tr.PokemonID,
 		tr.PokemonName,
@@ -332,11 +448,11 @@ func (r Repository) CreateTaskReward(tr TaskReward) error {
 	return nil
 }
 
-func (r Repository) RevealPokemon(tr TaskReward) error {
+func (r Repository) RevealPokemon(ID int) error {
 	result, err := r.db.Exec(
-		"UPDATE task_rewards SET revealed = 1, revealed_at = ? WHERE id = ?",
+		"UPDATE task_rewards SET revealed = 1, revealed_at = ? WHERE task_id = ?",
 		time.Now().Format("2006-01-02 15:04:05"),
-		tr.ID,
+		ID,
 	)
 	if err != nil {
 		return fmt.Errorf("reveal pokemon: exec: %w", err)
@@ -347,32 +463,32 @@ func (r Repository) RevealPokemon(tr TaskReward) error {
 	}
 
 	if rowsAffected == 0 {
-		return fmt.Errorf("reveal pokemon: not found: %w", err)
+		return ErrTaskRewardNotFound
 	}
 	return nil
 }
 
 func (r Repository) DeleteTaskReward(ID int) error {
 	result, err := r.db.Exec(
-		"DELETE FROM task_rewards WHERE ID = ? and Revealed = 0",
+		"DELETE FROM task_rewards WHERE task_id = ? and Revealed = 0",
 		ID,
 	)
 	if err != nil {
 		return fmt.Errorf("delete task reward: exec: %w", err)
 	}
-	rowsAffected, err := result.RowsAffected()
+	rowsAffected, _ := result.RowsAffected()
 	if rowsAffected == 0 {
-		return fmt.Errorf("delete task reward: rows affected: %w", err)
+		return ErrTaskRewardNotFound
 	}
 
 	return nil
 }
 
-func (r Repository) GetTaskReward(t Task) (TaskReward, error) {
+func (r Repository) GetTaskReward(ID int) (TaskReward, error) {
 	var tr TaskReward
 	err := r.db.QueryRow(
-		"SELECT id,task_id,pokemon_id,pokemon_name,pokemon_sprite,rarity,shiny,revealed,generated_at,revealed_at FROM task_rewards WHERE task_id = ?",
-		t.ID,
+		"SELECT id,task_id,pokemon_id,pokemon_name,sprite,rarity,shiny,revealed,generated_at,revealed_at FROM task_rewards WHERE task_id = ?",
+		ID,
 	).Scan(
 		&tr.ID,
 		&tr.TaskID,
@@ -387,16 +503,16 @@ func (r Repository) GetTaskReward(t Task) (TaskReward, error) {
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return TaskReward{}, nil
+			return TaskReward{}, ErrTaskRewardNotFound
 		}
-		return TaskReward{}, err
+		return TaskReward{}, fmt.Errorf("get task reward: exec: %w", err)
 	}
 	return tr, nil
 }
 
 func (r Repository) ListRevealedPokemons() ([]TaskReward, error) {
 	rows, err := r.db.Query(
-		"SELECT id,task_id,pokemon_id,pokemon_name,pokemon_sprite,rarity,shiny,revealed,generated_at,revealed_at FROM task_rewards WHERE revealed = 1",
+		"SELECT id,task_id,pokemon_id,pokemon_name,sprite,rarity,shiny,revealed,generated_at,revealed_at FROM task_rewards WHERE revealed = 1",
 	)
 	if err != nil {
 		return nil, err
@@ -452,12 +568,13 @@ func (r Repository) CreateCollectionEntry(ce CollectionEntry) error {
 	return err
 }
 
-func (r Repository) ExistCollectionEntry(userID string, pokemonID int) (int, error) {
+func (r Repository) ExistCollectionEntry(userID string, pokemonID int, shiny bool) (int, error) {
 	var ce CollectionEntry
 	err := r.db.QueryRow(
-		"SELECT id FROM collection_entries WHERE user_id = ? AND pokemon_id = ?",
+		"SELECT id FROM collection_entries WHERE user_id = ? AND pokemon_id = ? AND shiny = ?",
 		userID,
 		pokemonID,
+		shiny,
 	).Scan(
 		&ce.ID,
 	)
@@ -472,10 +589,11 @@ func (r Repository) ExistCollectionEntry(userID string, pokemonID int) (int, err
 
 func (r Repository) UpdateCollectionEntry(pokemonID int, shiny bool, userID string) error {
 	res, err := r.db.Exec(
-		"UPDATE CollectionEntry SET count = count + 1, shiny = ? WHERE user_id = ? AND pokemon_id = ?",
-		shiny,
+		"UPDATE collection_entries SET count = count + 1, last_caught_at = ? WHERE user_id = ? AND pokemon_id = ? AND shiny = ?",
+		time.Now().Format("2006-01-02 15:04:05"),
 		userID,
 		pokemonID,
+		shiny,
 	)
 	if err != nil {
 		return fmt.Errorf("update collection: exec: %w", err)
@@ -487,7 +605,7 @@ func (r Repository) UpdateCollectionEntry(pokemonID int, shiny bool, userID stri
 	}
 
 	if rowsAffected == 0 {
-		return fmt.Errorf("update collection: not found: %w", err)
+		return ErrCollectionEntryNotFound
 	}
 
 	return nil
@@ -582,7 +700,7 @@ func (r Repository) UpdateUserStatisticOnClose(userID string, shinyCaught, uniqu
 	}
 
 	if rowsAffected == 0 {
-		return fmt.Errorf("update statistic close: not found: %w", err)
+		return ErrStatisticNotFound
 	}
 
 	return nil
@@ -605,7 +723,7 @@ func (r Repository) UpdateUserStatisticOnCreate(userID string) error {
 	}
 
 	if rowsAffected == 0 {
-		return fmt.Errorf("update statistic create: not found: %w", err)
+		return ErrStatisticNotFound
 	}
 
 	return nil
@@ -628,7 +746,7 @@ func (r Repository) UpdateUserStatisticOnDelete(userID string) error {
 	}
 
 	if rowsAffected == 0 {
-		return fmt.Errorf("update statistic delete: not found: %w", err)
+		return ErrStatisticNotFound
 	}
 
 	return nil
@@ -660,6 +778,7 @@ func (r Repository) GetDataForStatistic(userID string) (int, int, int, []time.Ti
 		JOIN tasks t ON t.id = tr.task_id
 		WHERE t.user_id = ?
 		  AND tr.shiny = 1
+		  AND tr.revealed = 1
 	`, userID).Scan(&shinyCaughtTotal)
 	if err != nil {
 		return 0, 0, 0, nil, fmt.Errorf("get statistic data: shiny count: %w", err)
@@ -721,11 +840,18 @@ func (r Repository) GetStatistic(userID string) (UserStatistic, error) {
 		userID,
 	).Scan(
 		&us.UserID,
+		&us.TasksCompleted,
 		&us.TasksOpened,
+		&us.TasksDeleted,
+		&us.PokemonCaught,
+		&us.ShinyCaught,
+		&us.UniquePokemon,
+		&us.CurrentStreak,
+		&us.LongestStreak,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return UserStatistic{}, fmt.Errorf("get statistic: not found: %w", err)
+			return UserStatistic{}, ErrStatisticNotFound
 		}
 		return UserStatistic{}, fmt.Errorf("get statistic: exec: %w", err)
 	}

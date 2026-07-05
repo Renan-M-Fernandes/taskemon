@@ -46,3 +46,25 @@ type RewardResponse struct {
 	PokemonSprite *string    `json:"pokemonSprite,omitempty"`
 	RevealedAt    *time.Time `json:"revealedAt,omitempty"`
 }
+
+type CollectionEntryResponse struct {
+	PokemonID     int       `json:"pokemonID"`
+	PokemonName   string    `json:"pokemonName"`
+	Count         int       `json:"count"`
+	Rarity        int       `json:"rarity"`
+	Shiny         bool      `json:"shiny"`
+	FirstCaughtAt time.Time `json:"firstCaughtAt"`
+	LastCaughtAt  time.Time `json:"lastCaughtAt"`
+}
+
+type UserStatisticResponse struct {
+	UserID         string `json:"userID"`
+	TasksCompleted int    `json:"tasksCompleted"`
+	PokemonCaught  int    `json:"pokemonCaught"`
+	TasksOpened    int    `json:"tasksOpened"`
+	TasksDeleted   int    `json:"tasksDeleted"`
+	ShinyCaught    int    `json:"shinyCaught"`
+	UniquePokemon  int    `json:"uniquePokemon"`
+	CurrentStreak  int    `json:"currentStreak"`
+	LongestStreak  int    `json:"longestStreak"`
+}

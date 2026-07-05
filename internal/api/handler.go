@@ -32,11 +32,6 @@ func (h *Handler) GetHealth(
 		return
 	}
 
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
-		return
-	}
-
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(health)
 }
@@ -50,10 +45,7 @@ func (h *Handler) GetTasks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	task, err := h.taskService.GetTask(task.Task{
-		ID:     taskID,
-		UserID: userID,
-	})
+	task, err := h.taskService.GetTask(taskID, userID)
 
 	if err != nil {
 		http.Error(w, err.Error(), ErrorCode(err))
@@ -66,9 +58,35 @@ func (h *Handler) GetTasks(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ListTasks(w http.ResponseWriter, r *http.Request) {
 	userID := r.PathValue("userID")
 
-	task, err := h.taskService.ListTasksByUser(task.Task{
-		UserID: userID,
-	})
+	task, err := h.taskService.ListTasksByUser(userID)
+
+	if err != nil {
+		http.Error(w, err.Error(), ErrorCode(err))
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(ToTaskResponseSlice(task))
+}
+
+func (h *Handler) ListTasksCompleted(w http.ResponseWriter, r *http.Request) {
+	userID := r.PathValue("userID")
+
+	task, err := h.taskService.ListTasksByUserCompleted(userID)
+
+	if err != nil {
+		http.Error(w, err.Error(), ErrorCode(err))
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(ToTaskResponseSlice(task))
+}
+
+func (h *Handler) ListTasksNotCompleted(w http.ResponseWriter, r *http.Request) {
+	userID := r.PathValue("userID")
+
+	task, err := h.taskService.ListTasksByUserNotCompleted(userID)
 
 	if err != nil {
 		http.Error(w, err.Error(), ErrorCode(err))
@@ -89,7 +107,7 @@ func (h *Handler) CreateTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.taskService.CreateTask(task.Task{
+	_, err = h.taskService.CreateTask(task.Task{
 		UserID:      userID,
 		Title:       req.Title,
 		Description: req.Description,
@@ -114,11 +132,7 @@ func (h *Handler) DeleteTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.taskService.DeleteTask(task.Task{
-		ID:     taskID,
-		UserID: userID,
-	},
-	)
+	err = h.taskService.DeleteTask(taskID, userID)
 
 	if err != nil {
 		http.Error(w, err.Error(), ErrorCode(err))
@@ -136,11 +150,7 @@ func (h *Handler) CompleteTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.taskService.CompleteTask(task.Task{
-		ID:     taskID,
-		UserID: userID,
-	},
-	)
+	_, err = h.taskService.CompleteTask(taskID, userID)
 
 	if err != nil {
 		http.Error(w, err.Error(), ErrorCode(err))
@@ -207,7 +217,7 @@ func (h *Handler) ListCollection(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(collection)
+	json.NewEncoder(w).Encode(ToCollectionResponseSlice(collection))
 }
 
 func (h *Handler) GetStatistic(w http.ResponseWriter, r *http.Request) {
@@ -222,5 +232,5 @@ func (h *Handler) GetStatistic(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(stats)
+	json.NewEncoder(w).Encode(ToUserStatisticResponse(stats))
 }
