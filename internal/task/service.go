@@ -7,6 +7,7 @@ import (
 	"math/rand/v2"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -37,8 +38,10 @@ func (s Service) CreateTask(t Task) (Task, error) {
 		return Task{}, ErrEmptyTitle
 	}
 	if t.Tag == "" {
-		t.Tag = "Misc"
+		t.Tag = "misc"
 	}
+	t.Tag = strings.ToLower(t.Tag)
+
 	t, err := s.repo.CreateTask(t)
 	if err != nil {
 		return Task{}, err
@@ -167,6 +170,7 @@ func (s Service) UpdateTask(dueAtSent bool, update TaskUpdate) error {
 			return ErrEmptyTag
 		}
 		t.Tag = *update.Tag
+		t.Tag = strings.ToLower(t.Tag)
 	}
 
 	err = s.repo.UpdateTask(t)

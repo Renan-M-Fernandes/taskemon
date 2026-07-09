@@ -10,7 +10,7 @@ import (
 func Connect(path string) (*sql.DB, error) {
 	return sql.Open(
 		"sqlite",
-		"./database/"+path,
+		path,
 	)
 }
 

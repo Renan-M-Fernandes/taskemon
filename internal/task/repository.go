@@ -48,6 +48,7 @@ func (r Repository) CreateTask(t Task) (Task, error) {
 	}
 
 	t.ID = int(id)
+
 	return t, nil
 }
 
@@ -96,13 +97,14 @@ func (r Repository) UpdateTask(t Task) error {
 			description = ?,
 			due_at = ?,
 			tag = ?
-		WHERE id = ? AND completed = 0
+		WHERE id = ? AND user_id = ? AND completed = 0
 	`,
 		t.Title,
 		t.Description,
 		t.DueAt,
 		t.Tag,
 		t.ID,
+		t.UserID,
 	)
 	if err != nil {
 		return fmt.Errorf("update task: exec: %w", err)

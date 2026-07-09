@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"database/sql"
 	"encoding/json"
 	"net/http"
@@ -9,8 +10,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/Renan-M-Fernandes/taskemon/internal/config"
 	"github.com/Renan-M-Fernandes/taskemon/internal/database"
+	"github.com/Renan-M-Fernandes/taskemon/internal/printer"
 	"github.com/Renan-M-Fernandes/taskemon/internal/task"
+	"github.com/Renan-M-Fernandes/taskemon/internal/taskprint"
 	_ "modernc.org/sqlite"
 )
 
@@ -18,12 +22,35 @@ type apiTestServer struct {
 	db      *sql.DB
 	repo    *task.Repository
 	service *task.Service
+	printer *recordingPrinter
 	handler *Handler
 	router  *http.ServeMux
 }
 
+type recordingPrinter struct {
+	tickets []printer.Ticket
+	err     error
+}
+
+func (p *recordingPrinter) PrintTicket(ctx context.Context, ticket printer.Ticket) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	if p.err != nil {
+		return p.err
+	}
+	p.tickets = append(p.tickets, ticket)
+	return nil
+}
+
+func loadConfig(t *testing.T) config.Config {
+	t.Helper()
+	return config.Default()
+}
+
 func setupAPITestServer(t *testing.T) apiTestServer {
 	t.Helper()
+	cfg := loadConfig(t)
 
 	dsn := "file:" + strings.ReplaceAll(t.Name(), "/", "_") + "?mode=memory&cache=shared"
 
@@ -43,13 +70,19 @@ func setupAPITestServer(t *testing.T) apiTestServer {
 
 	repo := task.NewRepository(db)
 	service := task.NewService(repo)
-	handler := NewHandler(service)
+	testPrinter := &recordingPrinter{}
+	taskPrintService := taskprint.NewService(service, testPrinter, taskprint.Config{
+		QRMode:  cfg.Printer.QRMode,
+		BaseURL: cfg.Printer.BaseURL,
+	})
+	handler := NewHandler(service, taskPrintService)
 	router := NewRouter(handler)
 
 	return apiTestServer{
 		db:      db,
 		repo:    repo,
 		service: service,
+		printer: testPrinter,
 		handler: handler,
 		router:  router,
 	}

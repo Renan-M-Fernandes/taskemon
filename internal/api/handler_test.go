@@ -349,3 +349,77 @@ func TestGetStatisticHandlerNotFound(t *testing.T) {
 func stringPtr(s string) *string {
 	return &s
 }
+
+func TestPrintTaskHandler(t *testing.T) {
+	server := setupAPITestServer(t)
+	created := createAPITaskWithReward(t, server.repo, task.Task{
+		UserID:      "ash",
+		Title:       "Catch Pikachu",
+		Description: "Find Pikachu near Viridian Forest",
+		Tag:         "pokemon",
+	}, 25, "pikachu", true)
+
+	rr := performRequest(t, server.router, http.MethodPost, "/api/v1/tasks/ash/"+strconv.Itoa(created.ID)+"/print", nil)
+
+	if rr.Code != http.StatusNoContent {
+		t.Fatalf("status mismatch: got %d, expect %d; body=%s", rr.Code, http.StatusNoContent, rr.Body.String())
+	}
+	if len(server.printer.tickets) != 1 {
+		t.Fatalf("printed ticket count mismatch: got %d, expect 1", len(server.printer.tickets))
+	}
+
+	ticket := server.printer.tickets[0]
+	if ticket.TaskID != created.ID {
+		t.Fatalf("ticket task id mismatch: got %d, expect %d", ticket.TaskID, created.ID)
+	}
+	if ticket.UserID != "ash" {
+		t.Fatalf("ticket user id mismatch: got %q, expect ash", ticket.UserID)
+	}
+	if ticket.Title != "Catch Pikachu" {
+		t.Fatalf("ticket title mismatch: got %q, expect Catch Pikachu", ticket.Title)
+	}
+	if ticket.QRValue != "https://www.pokemon.com/us/pokedex/25" {
+		t.Fatalf("ticket qr value mismatch: got %q", ticket.QRValue)
+	}
+	if !ticket.Shiny {
+		t.Fatal("expected shiny flag to be copied to ticket")
+	}
+}
+
+func TestPrintTaskHandlerInvalidID(t *testing.T) {
+	server := setupAPITestServer(t)
+
+	rr := performRequest(t, server.router, http.MethodPost, "/api/v1/tasks/ash/not-an-id/print", nil)
+
+	if rr.Code != http.StatusBadRequest {
+		t.Fatalf("status mismatch: got %d, expect %d", rr.Code, http.StatusBadRequest)
+	}
+	if len(server.printer.tickets) != 0 {
+		t.Fatalf("printed ticket count mismatch: got %d, expect 0", len(server.printer.tickets))
+	}
+}
+
+func TestPrintTaskHandlerNotFound(t *testing.T) {
+	server := setupAPITestServer(t)
+
+	rr := performRequest(t, server.router, http.MethodPost, "/api/v1/tasks/ash/999/print", nil)
+
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("status mismatch: got %d, expect %d; body=%s", rr.Code, http.StatusNotFound, rr.Body.String())
+	}
+	if len(server.printer.tickets) != 0 {
+		t.Fatalf("printed ticket count mismatch: got %d, expect 0", len(server.printer.tickets))
+	}
+}
+
+func TestPrintTaskHandlerPrinterError(t *testing.T) {
+	server := setupAPITestServer(t)
+	server.printer.err = errors.New("paper jam")
+	created := createAPITaskWithReward(t, server.repo, task.Task{UserID: "ash", Title: "Catch Pikachu", Tag: "pokemon"}, 25, "pikachu", false)
+
+	rr := performRequest(t, server.router, http.MethodPost, "/api/v1/tasks/ash/"+strconv.Itoa(created.ID)+"/print", nil)
+
+	if rr.Code != http.StatusInternalServerError {
+		t.Fatalf("status mismatch: got %d, expect %d; body=%s", rr.Code, http.StatusInternalServerError, rr.Body.String())
+	}
+}

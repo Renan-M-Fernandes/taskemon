@@ -2,17 +2,26 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/Renan-M-Fernandes/taskemon/internal/api"
+	"github.com/Renan-M-Fernandes/taskemon/internal/config"
 	"github.com/Renan-M-Fernandes/taskemon/internal/database"
+	"github.com/Renan-M-Fernandes/taskemon/internal/printer"
 	"github.com/Renan-M-Fernandes/taskemon/internal/task"
+	"github.com/Renan-M-Fernandes/taskemon/internal/taskprint"
 )
 
 func main() {
-	db, err := database.Connect("taskemon.db")
+	cfg, err := config.Load("config.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	db, err := database.Connect(cfg.Database.Path)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -34,14 +43,27 @@ func main() {
 
 	repo := task.NewRepository(db)
 	service := task.NewService(repo)
-	handler := api.NewHandler(service)
+
+	taskPrinter, err := printer.NewFromConfig(cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	taskPrintService := taskprint.NewService(service, taskPrinter, taskprint.Config{
+		QRMode:  cfg.Printer.QRMode,
+		BaseURL: cfg.Printer.BaseURL,
+	})
+
+	handler := api.NewHandler(service, taskPrintService)
 
 	mux := api.NewRouter(handler)
 
+	serverAddr := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
+
 	log.Fatal(
 		http.ListenAndServe(
-			":8080",
-			api.EnableCORS(mux),
+			serverAddr,
+			api.EnableCORS(mux, cfg.Server.CORSOrigins),
 		),
 	)
 }

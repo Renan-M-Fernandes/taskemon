@@ -207,7 +207,7 @@ func assertTaskMatchesInput(t *testing.T, got Task, expect Task, completed bool)
 
 	expectedTag := expect.Tag
 	if expectedTag == "" {
-		expectedTag = "Misc"
+		expectedTag = "misc"
 	}
 
 	if got.Tag != expectedTag {

@@ -47,6 +47,17 @@ licenses: # Runs go-licenses to check the licenses of the dependencies and gener
 		--template '.github/license-3rdparty.tpl' \
 		--ignore 'git.sr.ht/~jamesponddotco/taskemon' \
 		'git.sr.ht/~jamesponddotco/taskemon' > LICENSE-3rdparty.csv
+		
+vet: ## Run go vet.
+	$(GO) vet ./...
+
+fmt: ## Format Go files.
+	gofmt -w .
+
+tidy: ## Clean up Go module dependencies.
+	$(GO) mod tidy
+
+check: fmt tidy test vet build ## Run the usual local checks before commit.
 
 clean: # Cleans cache files from tests and deletes any build output.
 	$(RM) -rf $(OUTDIR)

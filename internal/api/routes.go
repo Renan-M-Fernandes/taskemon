@@ -63,4 +63,9 @@ func RegisterRoutes(mux *http.ServeMux, handler *Handler) {
 		"GET    /api/v1/users/{userID}/stats",
 		handler.GetStatistic,
 	)
+
+	mux.HandleFunc(
+		"POST /api/v1/tasks/{userID}/{ID}/print",
+		handler.PrintTask,
+	)
 }

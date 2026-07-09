@@ -14,6 +14,25 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-07-08
+
+### Added
+
+- Added JSON configuration loading with server, database, CORS, and printer settings.
+- Added native ESC/POS thermal printer support using a printer service, USB transport, printable task tickets, QR modes, cut configuration, and shiny hint configuration.
+- Added a task print endpoint at `POST /api/v1/tasks/{userID}/{taskID}/print`.
+- Added tests for config loading, printer configuration/rendering helpers, and task print API behavior.
+
+### Changed
+
+- Updated server startup to load config values for database path, address, CORS origins, printer setup, and QR behavior.
+- Updated CORS middleware to use configured origins.
+- Updated task updates and deletes to remain scoped by user ID.
+
+### Fixed
+
+- Fixed task tag normalization to store lowercase tags consistently.
+
 ## [0.2.0] - 2026-07-05
 
 ### Added

@@ -2,19 +2,20 @@ package api
 
 import (
 	"net/http"
-	"os"
 )
 
-func EnableCORS(next http.Handler) http.Handler {
-	origin := os.Getenv("TASKEMON_CORS_ORIGIN")
-
-	if origin == "" {
-		origin = "*"
-	}
-
+func EnableCORS(next http.Handler, origins []string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestOrigin := r.Header.Get("Origin")
 
-		w.Header().Set("Access-Control-Allow-Origin", origin)
+		for _, allowed := range origins {
+			if allowed == "*" || allowed == requestOrigin {
+				w.Header().Set("Access-Control-Allow-Origin", requestOrigin)
+				w.Header().Set("Vary", "Origin")
+				break
+			}
+		}
+
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 

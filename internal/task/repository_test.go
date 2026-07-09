@@ -29,7 +29,6 @@ func createRepoTask(t *testing.T, repo *Repository, input Task) Task {
 
 func createRepoReward(t *testing.T, repo *Repository, taskID int, pokemonID int, pokemonName string, shiny bool) TaskReward {
 	t.Helper()
-
 	err := repo.CreateTaskReward(TaskReward{
 		TaskID:      taskID,
 		PokemonID:   pokemonID,
@@ -215,6 +214,25 @@ func TestRepositoryUpdateTask(t *testing.T) {
 	}
 
 	assertTaskMatchesInput(t, got, task, false)
+}
+
+func TestRepositoryUpdateTaskWrongUser(t *testing.T) {
+	repo, _ := setupRepository(t)
+
+	task := createRepoTaskWithReward(t, repo, Task{
+		UserID:      "ash",
+		Title:       "Catch Pikachu",
+		Description: "Original description",
+		Tag:         "pokemon",
+	}, 25, "pikachu", false)
+
+	task.UserID = "misty"
+	task.Title = "Steal Pikachu"
+
+	err := repo.UpdateTask(task)
+	if !errors.Is(err, ErrTaskNotFound) {
+		t.Fatalf("expected %v, got %v", ErrTaskNotFound, err)
+	}
 }
 
 func TestRepositoryUpdateTaskNotFound(t *testing.T) {
@@ -814,6 +832,16 @@ func TestRepositoryGetDataForStatistic(t *testing.T) {
 	}
 	if err := repo.CompleteTask(otherUser.ID, otherUser.UserID); err != nil {
 		t.Fatalf("CompleteTask other user: %v", err)
+	}
+
+	if err := repo.RevealPokemon(first.ID); err != nil {
+		t.Fatalf("CompleteTaskReward first: %v", err)
+	}
+	if err := repo.RevealPokemon(second.ID); err != nil {
+		t.Fatalf("CompleteTaskReward second: %v", err)
+	}
+	if err := repo.RevealPokemon(otherUser.ID); err != nil {
+		t.Fatalf("CompleteTaskReward other user: %v", err)
 	}
 
 	if err := repo.CreateCollectionEntry(CollectionEntry{UserID: "ash", PokemonID: 25, PokemonName: "pikachu", Rarity: 1, Shiny: true}); err != nil {

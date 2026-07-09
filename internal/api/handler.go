@@ -7,17 +7,18 @@ import (
 	"strconv"
 
 	"github.com/Renan-M-Fernandes/taskemon/internal/task"
+	"github.com/Renan-M-Fernandes/taskemon/internal/taskprint"
 )
 
 type Handler struct {
 	taskService *task.Service
+	taskPrint   *taskprint.Service
 }
 
-func NewHandler(
-	taskService *task.Service,
-) *Handler {
+func NewHandler(taskService *task.Service, taskPrint *taskprint.Service) *Handler {
 	return &Handler{
 		taskService: taskService,
+		taskPrint:   taskPrint,
 	}
 }
 
@@ -233,4 +234,22 @@ func (h *Handler) GetStatistic(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(ToUserStatisticResponse(stats))
+}
+
+func (h *Handler) PrintTask(w http.ResponseWriter, r *http.Request) {
+	userID := r.PathValue("userID")
+	taskID, err := strconv.Atoi(r.PathValue("ID"))
+	if err != nil {
+		http.Error(w, "invalid task id", http.StatusBadRequest)
+		return
+	}
+
+	err = h.taskPrint.PrintTask(r.Context(), taskID, userID)
+
+	if err != nil {
+		http.Error(w, err.Error(), ErrorCode(err))
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }

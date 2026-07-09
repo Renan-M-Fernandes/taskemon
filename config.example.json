@@ -1,0 +1,76 @@
+{
+    "server": {
+        "host": "0.0.0.0",
+        "port": 8080,
+        "corsOrigins": [
+            "http://localhost:8123",
+            "http://192.168.0.142:8123"
+        ]
+    },
+    "database": {
+        "path": "./database/taskemon.db"
+    },
+    "printer": {
+        "enabled": true,
+        "transport": "usb",
+        "vendorID": "0x0418",
+        "productID": "0x5011",
+        "devicePath": "/dev/usb/lp0",
+        "endpoint": 1,
+        "cutCommand": "gs_v_0",
+        "layout": {
+            "paperWidth": 80,
+            "charsPerLine": 48,
+            "header": {
+                "enabled": true,
+                "bold": true,
+                "size": 1,
+                "justify": "center",
+                "style": 1
+            },
+            "title": {
+                "bold": true,
+                "size": 2,
+                "justify": "left",
+                "linesAllwaysVisible": 1,
+                "maxLines": 2
+            },
+            "description": {
+                "enabled": true,
+                "bold": false,
+                "size": 1,
+                "justify": "left",
+                "linesAllwaysVisible": 0,
+                "maxLines": 0
+            },
+            "tag": {
+                "enabled": true,
+                "bold": true,
+                "size": 1,
+                "justify": "center",
+                "style": 1
+            },
+            "qr": {
+                "enabled": true,
+                "size": 4,
+                "justify": "right",
+                "correction": "H"
+            },
+            "footer": {
+                "enabled": true,
+                "bold": true,
+                "size": 1,
+                "justify": "center"
+            },
+            "feedLinesBeforeCut": 1,
+            "shinyHint": {
+                "enabled": true,
+                "bold": false,
+                "size": 1,
+                "justify": "center"
+            }
+        },
+        "qrMode": "pokemon_placeholder",
+        "baseURL": "http://localhost:8080"
+    }
+}
